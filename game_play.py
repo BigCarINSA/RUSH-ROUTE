@@ -137,7 +137,8 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
                                      bg = self.bg_button, activebackground = self.active_bg_button,  
                                      fg = COLOR["dark blue"], activeforeground= COLOR["dark blue"], disabledforeground = COLOR["brown"],
                                      command = self.show_result_map)
-        if (self.comparison_distance < 80) or (self.played_times < 3): #la condition pour utiliser le bouton "Afficher le résultat"
+        
+        if (self.comparison_distance < 80) and (self.played_times < 3): #la condition pour utiliser le bouton "Afficher le résultat"
             self.button_show_map.config(state = 'disabled', bg = COLOR["dark red"])
         self.button_show_map.grid( column = 2, row = 0, padx = 5)
 

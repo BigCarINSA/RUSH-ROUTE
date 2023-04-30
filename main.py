@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 from tkinter import messagebox
 
-from level_window import open_level
+from game_play import open_level
 
 import csv
 import random

@@ -7,7 +7,7 @@ Created on Tue Apr 11 07:14:58 2023
 
 import tkinter as tk
 from tkinter import messagebox
-from level_window import open_level
+from game_play import open_level
 import csv
 
 PLAYER_DATA = './data/player_data.csv' #lien de fichier csv contenant data de joueur
@@ -393,8 +393,8 @@ class LevelSelect(tk.Frame):
             button = self.list_buttons[i]
             previous_level = self.difficulty + ' - ' + self.list_buttons[i-1]
             played_times, high_score = self.player_data[previous_level]
-            if (played_times < 3) or (high_score < 90):
-                self.buttons[button].config( state='disable', bg = COLOR['light green'])
+            if (played_times < 3) and (high_score < 90):
+                self.buttons[button].config( state='disabled', bg = COLOR['light green'])
                 self.frames_buttons[ button ].config( highlightbackground = COLOR["dark green"] )
         
     def draw_widgets(self):
@@ -419,12 +419,14 @@ class LevelSelect(tk.Frame):
 
     def open_maze_selection(self, event):
         button_clicked = event.widget
-        level_select = self.difficulty + " - " + button_clicked['text'][-1]
-        print(level_select)
-        
-        if self.controller.maze_playing_window != None:
-            self.controller.maze_playing_window.destroy()
-        self.fen_level = open_level(level_select, self.controller)
+        print(button_clicked['state'])
+        if button_clicked['state'] != 'disabled':
+            level_select = self.difficulty + " - " + button_clicked['text'][-1]
+            print(level_select)
+            
+            if self.controller.maze_playing_window != None:
+                self.controller.maze_playing_window.destroy()
+            self.fen_level = open_level(level_select, self.controller)
         
     def get_player_data(self):
         self.player_data = {}
