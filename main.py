@@ -116,7 +116,7 @@ class HomePage(tk.Frame):
         self.bouton_setting.pack()
         self.bouton_setting.bind("<Button-1>",self.boutonsettingClick)
             
-        self.quitter_image = tk.PhotoImage(file = "./Image/quit_button.png")
+        self.quitter_image = tk.PhotoImage(file = "./image/quit_button.png")
         self.quitter_button = tk.Button(self, image = self.quitter_image,
                                         height = 65, width = 65, relief = 'flat',
                                         bg = COLOR["dark green"], 
@@ -182,7 +182,7 @@ class PlayGame(tk.Frame):
             self.buttons[button].bind("<Button-1>", self.get_button_click)
             self.buttons[button].pack()
         
-        self.return_image = tk.PhotoImage(file = "./Image/quit_button.png")
+        self.return_image = tk.PhotoImage(file = "./image/quit_button.png")
         self.return_button = tk.Button(self, image = self.return_image,
                                         height = 65, width = 65, relief = 'flat',
                                         bg = COLOR["dark green"], 
@@ -328,7 +328,7 @@ class SettingPopUp(tk.Frame):
         self.draw_sound_scale()
         
         #dessiner bouton "close"
-        self.close_image = tk.PhotoImage(file = "./Image/close_button_yellow.png")
+        self.close_image = tk.PhotoImage(file = "./image/close_button_yellow.png")
         self.close_button = tk.Button(self, image = self.close_image,
                                       height = 50, width = 50, relief = 'flat',
                                       bg = COLOR["dark green"], activebackground = COLOR["dark blue"])
@@ -424,7 +424,7 @@ class LevelSelect(tk.Frame):
         
         self.draw_grid_buttons_level()
         
-        self.return_image = tk.PhotoImage(file = "./Image/quit_button.png")
+        self.return_image = tk.PhotoImage(file = "./image/quit_button.png")
         self.return_button = tk.Button(self, image = self.return_image,
                                         height = 65, width = 65, relief = 'flat',
                                         bg = COLOR["dark green"], 
@@ -483,7 +483,7 @@ class Records(tk.Frame):
                           fg = COLOR["dark blue"],bg= COLOR["lighter yellow"] )
         self.lb1.pack(pady=(15,0))
                 
-        self.next_image = tk.PhotoImage(file = "./Image/next.png")
+        self.next_image = tk.PhotoImage(file = "./image/next.png")
         self.next_button = tk.Button(self, image = self.next_image,
                                         height = 40, width = 40, relief = 'flat',
                                         bg = COLOR["dark blue"], 
@@ -493,7 +493,7 @@ class Records(tk.Frame):
         
         self.draw_label_table()
         
-        self.return_image = tk.PhotoImage(file = "./Image/quit_button.png")
+        self.return_image = tk.PhotoImage(file = "./image/quit_button.png")
         self.return_button = tk.Button(self, image = self.return_image,
                                         height = 65, width = 65, relief = 'flat',
                                         bg = COLOR["dark green"], 

@@ -341,7 +341,7 @@ class GraphicPlayingMap: #Un class pour le map graphique
                              
 class button_deplacement: #Un class pour le bouton de déplacement
     def __init__(self, root, name, grid_pos, pos_char_varie): #initialiser les variables       
-        self.icon_link = './Image/moving_buttons/' + name + '.png'
+        self.icon_link = './image/moving_buttons/' + name + '.png'
         self.icon = tk.PhotoImage(file = self.icon_link)
         
         self.button_with_border = tk.Frame(root, highlightbackground = COLOR["dark green"], highlightthickness = 3, bd =0)    
@@ -381,8 +381,8 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
         
         self.button_size = 45
         self.label_height = 50
-        self.img_back_button = tk.PhotoImage(file = "./Image/return_button.png")
-        self.img_exit_button = tk.PhotoImage(file = "./Image/close_button_green.png")
+        self.img_back_button = tk.PhotoImage(file = "./image/return_button.png")
+        self.img_exit_button = tk.PhotoImage(file = "./image/close_button_green.png")
         
         self.bar_frame = tk.Frame(root, bg = self.bg_bar_color, 
                                   height = self.bar_height, width = self.bar_width)
