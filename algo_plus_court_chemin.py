@@ -12,8 +12,7 @@ class plus_court_chemin:
         
         self.reset_distance_map() 
         self.algo_main()
-        self.shortese_distance = self.distance_map[self.x_end][self.y_end]
-        self.way = self.way_map[self.x_end][self.y_end]    
+          
 
     def find_start_end(self):
         for i in range(self.height):
@@ -82,6 +81,9 @@ class plus_court_chemin:
                 for y in range( self.width ):
                     if self.distance_map[x][y] != -1:
                         count += self.change_distance_around(x, y)
+                        
+        self.shortese_distance = self.distance_map[self.x_end][self.y_end]
+        self.way = self.way_map[self.x_end][self.y_end]  
         
 if __name__ == "__main__":
     level = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 1, 0, 0, 0, 0, 0], [-1, 1, 0, 1, 0, 1, 0, 0, 0, 0], [0, 1, 1, 1, 0, 0, 1, 0, 0, 0], [0, 2, 1, 1, 0, 0, 2, 1, 0, 0], [0, 1, 0, 1, 0, 0, 1, 1, 0, 0], [0, 1, 0, 1, 0, 0, 1, 1, 2, 0], [0, 1, 0, 2, 0, 0, 1, 1, 1, -2], [0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]

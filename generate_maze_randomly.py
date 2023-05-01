@@ -9,18 +9,18 @@ import csv
 import math 
 from algo_plus_court_chemin import plus_court_chemin 
 
-TAILLE_MATRICE = { "facile"    : (10, 20),
-                   "moyen"      : (15, 30),
-                   "difficile"  : (20, 40) } 
+TAILLE_MATRICE = { "EASY"     : (10, 20),
+                   "MEDIUM"   : (15, 30),
+                   "HARD"     : (20, 40) } 
 
 CARACTERE_CELL = { "trou"     : 0, #Ne pas passer
                    "sol plat" : 1, #Vitesse normal
                    "pente"    : 2, #Vitesse / 2
                    }
 
-POURCENT_TROU_INTERVALLE = (30, 60) #20 à 50 %
+POURCENT_TROU_INTERVALLE = (50, 70) #20 à 50 %
 
-class Matrice():
+class Matrice_random():
     def __init__(self, niveau):
         #Initiliser le matrice
         self.niveau = niveau
@@ -34,8 +34,7 @@ class Matrice():
         
         self.algo = plus_court_chemin(self.matrice)
         self.creer_des_trous()
-        self.algo.print_map(self.matrice)
-        print(self.algo.way)
+        print(self.way)
         
     def créer_matrice_brut(self):
         self.matrice = []
@@ -57,29 +56,29 @@ class Matrice():
     def creer_des_trous(self):
         self.way = self.algo.way
         while self.nb_trous > 0:  
-            x_trou, y_trou = randrange(0, self.width), randrange(0, self.width)
+            
+            x_trou, y_trou = randrange(0, self.width), randrange(0, self.height)
             while self.matrice[x_trou][y_trou] != 1:
-                x_trou, y_trou = randrange(0, self.width), randrange(0, self.width)
+                x_trou, y_trou = randrange(0, self.width), randrange(0, self.height)
             self.matrice[x_trou][y_trou] = 0
             
             if (x_trou, y_trou) not in self.way:
                 self.nb_trous -= 1
             else:
+                
                 self.algo.plan = self.matrice
                 self.algo.reset_distance_map()
                 self.algo.algo_main()
-                self.way = self.algo.way
+                algo_way = self.algo.way
                 
-                if self.way != []: self.nb_trous -= 1
-                else: self.matrice[x_trou][y_trou] = 1
-                        
-    def créer_file_csv(self):
-        with open("./level/maze_test.csv",'w',newline = '') as f:
-            writer =csv.writer(f)
-            writer.writerows(self.matrice)
+                if len(algo_way) > 1: 
+                    self.nb_trous -= 1
+                    self.way = algo_way
+                else: 
+                    self.matrice[x_trou][y_trou] = 1
          
 if __name__ == "__main__":
-    mat = Matrice("facile")
+    mat = Matrice_random("facile")
             
                 
 

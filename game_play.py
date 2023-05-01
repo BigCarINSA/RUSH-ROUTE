@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from math import sqrt
 from algo_plus_court_chemin import plus_court_chemin
+from generate_maze_randomly import Matrice_random
 
 import csv
 import pandas as pd
@@ -42,7 +43,8 @@ MOVING_KEY = {  'Q' : (-1, -1) ,    'q' : (-1, -1) ,
 #Global variables
 
 g_time_playing = 0 #Pour faire un Timer
-g_playing_level = "name of playing maze" #Pour écrire le nom de ce labyrinthe
+g_level_difficulty = "EASY" #Le difficulté du labyrinthe
+g_level = "1" #Le niveau dans ce difficulté
 g_level_window = None #Pour enregistrer l'objet LevelWindow
 g_level_map = [[]] #2D liste contenant info de ce labyrinthe
 
@@ -71,12 +73,13 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
        
     def update_get_player_data(self): #Enregistrer ce resultat dans le fichier csv
         df = pd.read_csv(PLAYER_DATA, sep = ';', index_col='level')
-        df['played_times'][g_playing_level] += 1
-        self.played_times = df['played_times'][g_playing_level]
+        playing_level = g_level_difficulty + " - " + g_level
+        df['played_times'][playing_level] += 1
+        self.played_times = df['played_times'][playing_level]
         
-        self.highest_score = df['high_score'][g_playing_level]
+        self.highest_score = df['high_score'][playing_level]
         if (self.highest_score < self.comparison_distance) or (self.highest_score == 0):
-            df['high_score'][g_playing_level] = self.comparison_distance
+            df['high_score'][playing_level] = self.comparison_distance
             self.highest_score = self.comparison_distance
             
         df.to_csv("./data/player_data.csv", sep= ';')
@@ -326,6 +329,8 @@ class GraphicPlayingMap: #Un class pour le map graphique
         for button in g_level_window.buttons:
             button.bttn.config(state = 'disabled')
         g_level_window.isFinish = True
+        
+        g_level_window.menu_root.reset_select_level()
            
     def back_1_step(self): #Pour le bouton "1 pas en arrière" comme Ctrl+Z
         pos_delete = self.way.pop(-1)
@@ -411,7 +416,7 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
                                        bg = self.font_color)
         separated_line.pack(side = tk.BOTTOM, pady = (3,0))
         
-        self.titre_level = tk.Label(self.frame_head, text = g_playing_level, bg = self.bg_bar_color,
+        self.titre_level = tk.Label(self.frame_head, text = g_level_difficulty + " " + g_level, bg = self.bg_bar_color,
                                    fg = self.font_color, font = self.font_level)
         self.titre_level.pack(side = tk.BOTTOM, pady = (0, 7))
         
@@ -512,20 +517,28 @@ class LevelWindow: #le classe du fenetre du labyrinthe
         g_time_playing = 0
         self.update_playing_time() 
        
-    def get_map(self): #lire le fichier csv du labyrinthe
-        global g_level_map    
-        fichier = "./level/" + g_playing_level + ".csv"
+    def get_map_csv(self): #lire le fichier csv du labyrinthe   
+        fichier = "./level/" + g_level_difficulty + " - " + g_level + ".csv"
         with open(fichier, newline="") as csvfile:
             reader = csv.reader(csvfile, delimiter=";")
             
-            g_level_map = []
-            
+            level_map = []
             for ligne in reader:
                 level_ligne = []
                 for cell in ligne:
                     level_ligne.append( int(cell) )
                         
-                g_level_map.append( level_ligne.copy() )      
+                level_map.append( level_ligne.copy() )  
+        print(level_map)
+        return level_map 
+                
+    def get_map(self): 
+        global g_level_map
+        if g_level.isnumeric(): 
+            g_level_map = self.get_map_csv()
+        else:
+            mat_ran = Matrice_random(g_level_difficulty)
+            g_level_map = mat_ran.matrice  
                 
     def draw(self): #dessiner le fenetre
         self.frame_map = tk.Frame(self.racine,
@@ -577,17 +590,18 @@ class LevelWindow: #le classe du fenetre du labyrinthe
         self.racine.destroy()
         self.__init__(self.menu_root)
         
-def open_level(level, root): #fonction pour le fichier python principal, quand le joueur choisit un labyrinthe pour jouer
-    global g_playing_level
-    g_playing_level = level
+def open_level(difficulty, level, root): #fonction pour le fichier python principal, quand le joueur choisit un labyrinthe pour jouer
+    global g_level_difficulty
+    global g_level
+    g_level_difficulty = difficulty
+    g_level = level
     
     global g_level_window
     g_level_window = LevelWindow(root) 
-    print(g_level_window.map_player.square_size)
     return g_level_window     
     
 if __name__ == "__main__":
     root = tk.Tk()
     #root.geometry(f"{1000}x{700}")
-    open_level("MEDIUM - 1", root)
+    open_level("EASY", "RANDOM" , root)
     root.mainloop()
