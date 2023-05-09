@@ -40,13 +40,21 @@ MOVING_KEY = {  'Q' : (-1, -1) ,    'q' : (-1, -1) ,
                 'C' : ( 1,  1) ,    'c' : ( 1,  1) ,
                 }
 
+BACKGROUND_MUSIC = "./Sound/background_music.mp3"
+SOUND_EFFECT = { "button click" : "./Sound/button_click_sound.mp3",
+                 "move"         : "./Sound/moving_sound.mp3",
+                 "success"      : "./Sound/success_sound.mp3",
+                 "fail"         : "./Sound/fail_sound.mp3",}
+
 #Global variables
 
+g_sound_id = {}
 g_time_playing = 0 #Pour faire un Timer
 g_level_difficulty = "EASY" #Le difficulté du labyrinthe
 g_level = "1" #Le niveau dans ce difficulté
 g_level_window = None #Pour enregistrer l'objet LevelWindow
 g_level_map = [[]] #2D liste contenant info de ce labyrinthe
+g_root = None
 
 class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyrinthe
     def __init__(self, root, distance_player, way_player):  #initialiser les variables
@@ -88,8 +96,10 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
         #dessiner le titre
         if self.comparison_distance < COMPLETION_RATE: #Si le joueur satisfait la condition pour passer
             titre_text = "TRY SHORTER WAY!"
+            g_root.play_sound("fail")
         else:
             titre_text = "YOU FOUND THE SHORTEST!"
+            g_root.play_sound("success")
         self.title = tk.Label(self.fini_fen, font = (FONT, 30, 'bold'),
                                 text = titre_text , bg = self.bg_color)
         
@@ -169,9 +179,11 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
         self.fini_fen.place( x = (self.x_centre - self.width / 2) , y = (self.y_centre - self.heigth / 2) )
         
     def restart_level(self): #callback pour le bouton "Rejouer"
+        g_root.play_sound("button click")
         g_level_window.restart()    
         
     def show_result_map(self): #callback pour le bouton "Afficher le résultat"
+        g_root.play_sound("button click")
         self.result_map.draw_way(self.result_way, COLOR["red"])
 
 class Character: #Un class pour le personnage qui est controlé par le joueur
@@ -197,6 +209,7 @@ class Character: #Un class pour le personnage qui est controlé par le joueur
                                             width = 1, outline = COLOR["dark blue"])
         
     def update_pos(self, vari_pos): #Mise à jour la position après appuyer sur un bouton de déplacement
+        g_root.play_sound("move")
         self.pos_x += vari_pos[0]
         self.pos_y += vari_pos[1]
         self.root.move(self.charac, vari_pos[1] * self.square_size, vari_pos[0] * self.square_size)
@@ -367,6 +380,7 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
         self.fen_level = root
         self.bar_height = height
         self.bar_width = width
+        self.is_vol_up = True
         
         #Les couleurs
         self.bg_bar_color = COLOR["dark green"]
@@ -379,10 +393,12 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
         #variables pour GUI
         self.height_separated_line = 2
         
-        self.button_size = 45
+        self.button_size = 40
         self.label_height = 50
         self.img_back_button = tk.PhotoImage(file = "./image/return_button.png")
         self.img_exit_button = tk.PhotoImage(file = "./image/close_button_green.png")
+        self.img_vol_up_button = tk.PhotoImage(file = "./image/volume_up_button.png")
+        self.img_vol_down_button = tk.PhotoImage(file = "./image/volume_down_button.png")
         
         self.bar_frame = tk.Frame(root, bg = self.bg_bar_color, 
                                   height = self.bar_height, width = self.bar_width)
@@ -414,24 +430,40 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
     def draw_head(self): #dessiner la 1er partie du tableau
         separated_line = tk.Frame(self.frame_head, height = self.height_separated_line, width = 0.7 * self.bar_width,
                                        bg = self.font_color)
-        separated_line.pack(side = tk.BOTTOM, pady = (3,0))
+        separated_line.pack(side = tk.BOTTOM, pady = (2,0))
         
-        self.titre_level = tk.Label(self.frame_head, text = g_level_difficulty + " " + g_level, bg = self.bg_bar_color,
+        titre_text = f"{g_level_difficulty} - {g_level}"
+        if type(g_level) is not int: titre_text = f"{g_level_difficulty}\n{g_level}"
+        self.titre_level = tk.Label(self.frame_head, text = titre_text, bg = self.bg_bar_color,
                                    fg = self.font_color, font = self.font_level)
-        self.titre_level.pack(side = tk.BOTTOM, pady = (0, 7))
+        self.titre_level.pack(side = tk.BOTTOM, pady = (0, 5))
         
-        self.back_button = tk.Button(self.frame_head,
+        self.frame_head_buttons = tk.Frame(self.frame_head, width = self.bar_width, bg = self.bg_bar_color, height= self.button_size +5)
+        self.frame_head_buttons.grid_propagate(False)
+        self.frame_head_buttons.pack(side = tk.TOP, pady=(12,2), padx= 7)
+        self.frame_head_buttons.columnconfigure(0, weight=1)
+        self.frame_head_buttons.columnconfigure(1, weight=1)
+        self.frame_head_buttons.columnconfigure(2, weight=1)
+        
+        self.back_button = tk.Button(self.frame_head_buttons,
                               height = self.button_size, width = self.button_size,  
                               image = self.img_back_button, 
                               bg = COLOR["lighter yellow"], activebackground = COLOR["light yellow"])
-        self.back_button.pack(side = tk.LEFT, padx= (30,0), pady=(10,5))
+        self.back_button.grid(column = 0, row = 0, sticky='n')
         self.back_button.bind('<Button-1>', self.back_one_step)
         
-        self.exit_button = tk.Button(self.frame_head,
+        self.vol_button = tk.Button(self.frame_head_buttons,
+                              height = self.button_size, width = self.button_size,  
+                              image = self.img_vol_up_button, 
+                              bg = COLOR["lighter yellow"], activebackground = COLOR["light yellow"])
+        self.vol_button.grid(column = 1, row = 0, sticky='n')
+        self.vol_button.bind('<Button-1>', self.on_off_vol)
+        
+        self.exit_button = tk.Button(self.frame_head_buttons,
                               height = self.button_size, width = self.button_size,  
                               image = self.img_exit_button, 
                               bg = COLOR["lighter yellow"], activebackground = COLOR["light yellow"])
-        self.exit_button.pack(side = tk.RIGHT, padx= (0,30), pady=(10,5))
+        self.exit_button.grid(column = 2, row = 0, sticky='n')
         self.exit_button.bind("<Button-1>", self.ask_to_exit)
     
     def draw_time(self): #dessiner la partie qui montre le temps
@@ -493,10 +525,22 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
         self.frame_distance.grid(column=0, row=2)
         
     def back_one_step(self, events): #Callback pour le bouton "1 pas en arrière"
+        g_root.play_sound("button click")
         if g_level_window.map_player.distance > 0:
             g_level_window.map_player.back_1_step()
         
+    def on_off_vol(self, event):
+        g_root.play_sound("button click")
+        if self.is_vol_up:
+            self.is_vol_up = False
+            self.vol_button['image'] = self.img_vol_down_button
+        else:
+            self.is_vol_up = True
+            self.vol_button['image'] = self.img_vol_up_button
+        g_root.on_off_music(self.is_vol_up)
+        
     def ask_to_exit(self, events): #demander si le joueur veut quitter
+        g_root.play_sound("button click")
         g_level_window.ask_to_quit()
 
 class LevelWindow: #le classe du fenetre du labyrinthe
@@ -596,12 +640,15 @@ def open_level(difficulty, level, root): #fonction pour le fichier python princi
     g_level_difficulty = difficulty
     g_level = level
     
+    global g_root
+    g_root = root
+    
     global g_level_window
     g_level_window = LevelWindow(root) 
     return g_level_window     
     
 if __name__ == "__main__":
-    root = tk.Tk()
-    #root.geometry(f"{1000}x{700}")
-    open_level("EASY", "RANDOM" , root)
-    root.mainloop()
+    g_root = tk.Tk()
+    #g_root.geometry(f"{1000}x{700}")
+    open_level("EASY", "RANDOM" , g_root)
+    g_root.mainloop()

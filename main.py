@@ -4,9 +4,9 @@ Created on Tue Apr 11 07:14:58 2023
 
 @author: ptngu
 """
-
 import tkinter as tk
 from tkinter import messagebox
+from pygame import mixer
 from game_play import open_level
 import csv
 
@@ -25,13 +25,20 @@ COLOR = { "white"        :  "#FFFFFF",
 
 
 MIN_VOLUME = 0
-MAX_VOLUME = 100
+MAX_VOLUME = 1
 
 WINDOWHEIGHT = 600
 WINDOWWIDTH = 1000
 
 GAME_NAME = "ROUTE RUSH"
 TITRE_FONT = (FONT, 80,"bold")
+
+BACKGROUND_MUSIC = "./Sound/background_music.mp3"
+SOUND_EFFECT = { "button click" : "./Sound/button_click_sound.mp3",
+                 "move"         : "./Sound/moving_sound.mp3",
+                 "success"      : "./Sound/success_sound.mp3",
+                 "fail"         : "./Sound/fail_sound.mp3",}
+g_sound_id = {}
 
 class Window(tk.Tk):
     def __init__(self):
@@ -52,7 +59,39 @@ class Window(tk.Tk):
                        #sticky = "nsew")
             self.frames[F] =frame
             
-        self.show_frame(HomePage) 
+        self.show_frame(HomePage)
+        self.init_mixer() 
+        self.isvolumeOn = 1
+    
+    def init_mixer(self):
+        mixer.init()
+        
+        global g_sound_id
+        g_sound_id = {
+            "button click" : mixer.Sound(SOUND_EFFECT["button click"]),
+            "move"         : mixer.Sound(SOUND_EFFECT["move"]),
+            "success"      : mixer.Sound(SOUND_EFFECT["success"]),
+            "fail"         : mixer.Sound(SOUND_EFFECT["fail"])
+        }
+        
+        self.set_vol(0.5)
+        self.music_background = mixer.music.load(filename=BACKGROUND_MUSIC)
+        mixer.music.play()
+    
+    def play_sound(self, action):
+        mixer.Sound.play(g_sound_id[action])
+    
+    def set_vol(self, vol_intensite):
+        self.volume_intensite = vol_intensite
+        for sound in g_sound_id.values():
+            mixer.Sound.set_volume(sound, self.volume_intensite)
+        mixer.music.set_volume(self.volume_intensite)
+    
+    def on_off_music(self, isOn):
+        if not isOn:
+            mixer.music.set_volume(0)
+        else:
+            mixer.music.set_volume(self.volume_intensite)
     
     def reset_select_level(self):
         frame = self.frames[LevelSelect]
@@ -125,15 +164,19 @@ class HomePage(tk.Frame):
         self.quitter_button.bind('<Button-1>', self.quitClick)        
                
     def button1Click(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(PlayGame)
 
     def boutonsettingClick(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(SettingPopUp)
       
     def boutonRecordClick(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(Records)
         
     def quitClick(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.msg_box = messagebox.askquestion("Attention!", "Do you want to quit?", icon = "warning")
         if self.msg_box == "yes":
             self.controller.destroy()
@@ -191,6 +234,7 @@ class PlayGame(tk.Frame):
         self.return_button.bind('<Button-1>', self.button_return)        
 
     def get_button_click(self, event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.open_level_selection( event.widget['text'] )
 
     def open_level_selection(self, difficulty):
@@ -198,6 +242,7 @@ class PlayGame(tk.Frame):
         self.controller.frames[LevelSelect].change_difficulty(difficulty)
         
     def button_return(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(HomePage)
  
 class Scale:
@@ -229,7 +274,7 @@ class Scale:
         self.canvas.create_rectangle(self.trough_x1, trough_y, self.trough_x2, trough_y + trough_height, fill=self.trough_color, width=0)
 
         # Dessiner le glissière
-        slider_x = self.length / 2
+        slider_x = self.length / 2 - self.slider_size / 2
         self.slider = self.canvas.create_oval(slider_x, self.slider_border_width, slider_x + self.slider_size_no_border, -1 + self.slider_size_no_border+self.slider_border_width, 
                                               fill=self.slider_color, outline=slider_border_color, width = self.slider_border_width)
         
@@ -267,6 +312,7 @@ class Scale:
         self.value = (self.centre_slider - self.trough_x1) / (self.trough_x2 - self.trough_x1)
         if self.value < 0: self.value = 0
         if self.value > 1: self.value = 1
+        
 class SettingPopUp(tk.Frame):
     def __init__(self, controller, frame):
         self.controller = controller
@@ -286,15 +332,15 @@ class SettingPopUp(tk.Frame):
         self.draw()
     
     def draw_sound_scale(self):
-        self.frame_volumn = tk.Frame(self, bg=self.bg_color, width = 600)
-        self.frame_volumn.pack(side = tk.LEFT)
+        self.frame_volume = tk.Frame(self, bg=self.bg_color, width = 600)
+        self.frame_volume.pack(side = tk.LEFT)
         
         self.label_font = (FONT, 30)
-        self.label = tk.Label(self.frame_volumn, text="Volume:", bg=self.bg_color,
+        self.label = tk.Label(self.frame_volume, text="Volume:", bg=self.bg_color,
                               font = self.label_font, foreground = COLOR['dark green'])
         self.label.pack(side=tk.LEFT, padx= (30,20))
 
-        self.scale = Scale(self.frame_volumn, length = self.scale_length, 
+        self.scale = Scale(self.frame_volume, length = self.scale_length, 
                            trough_color = COLOR['dark blue'], bg = self.bg_color,
                            slider_size = self.slider_size, slider_border_width = 3, 
                            slider_border_color = COLOR["dark blue"],          
@@ -337,10 +383,12 @@ class SettingPopUp(tk.Frame):
         
     def update_volume(self, value):
         #Code pour modifier l'intensite
-        self.volumn_intensite = MIN_VOLUME + value * (MAX_VOLUME - MIN_VOLUME)
-        print(self.volumn_intensite)  
+        self.volume_intensite = MIN_VOLUME + value * (MAX_VOLUME - MIN_VOLUME)
+        self.controller.set_vol(self.volume_intensite)
+        print(self.volume_intensite)  
         
     def reset_data_player(self, events):
+        mixer.Sound.play(g_sound_id["button click"])
         self.msg_box = messagebox.askquestion("Attention!", "Reset all data and start over?", icon = "info")
         if self.msg_box == "yes":
             with open(PLAYER_DATA,'w',newline = '') as f:
@@ -460,6 +508,7 @@ class LevelSelect(tk.Frame):
         self.draw_grid_buttons_level()
         
     def button_return(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(PlayGame)
             
 class Records(tk.Frame):
@@ -566,13 +615,14 @@ class Records(tk.Frame):
         self.list_records.append(['Maze random', self.player_data[level][0], self.player_data[level][1]])
 
     def button_change_difficulty(self, event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.difficulty_index = (self.difficulty_index + 1) % len(self.difficulty_list)
         self.frame_label_table.destroy()
         self.draw_label_table()
         
     def button_return(self,event):
+        mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(HomePage)
- 
                
 app = Window()
 app.mainloop()
