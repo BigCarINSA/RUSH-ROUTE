@@ -60,8 +60,8 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
     def __init__(self, root, distance_player, way_player):  #initialiser les variables
         #variables relatives au resultat de labyrinthe 
         algo = plus_court_chemin(g_level_map)
-        self.result_distance = algo.shortese_distance
-        self.result_way = algo.way
+        self.result_distance = algo.shortest_distance
+        self.result_way = algo.shortest_way
         self.fini_pos = (algo.x_end, algo.y_end)
         
         #variables relatives à la progression du joueur
@@ -544,9 +544,14 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
         g_level_window.ask_to_quit()
 
 class LevelWindow: #le classe du fenetre du labyrinthe
-    def __init__(self, root): #initialiser les variables
+    def __init__(self, root, restart_random): #initialiser les variables
         self.menu_root = root
-        self.get_map()
+        
+        print(restart_random)
+        if restart_random == []: self.get_map()
+        else: 
+            global g_level_map
+            g_level_map = restart_random
         
         self.racine = tk.Toplevel(root,
                                   bg = BG_COLOR)
@@ -630,9 +635,11 @@ class LevelWindow: #le classe du fenetre du labyrinthe
         if not self.isFinish:
             self.racine.after(1000, self.update_playing_time)
         
-    def restart(self): #pour le bouton "rejouer"       
+    def restart(self): #pour le bouton "rejouer", "restart_random" pour enregistrer le matrice random si le joeur veux rejouer le labyrinthe random avant    
         self.racine.destroy()
-        self.__init__(self.menu_root)
+        if g_level == "RANDOM": restart_random = g_level_map
+        else: restart_random = []
+        self.__init__(self.menu_root, restart_random)
         
 def open_level(difficulty, level, root): #fonction pour le fichier python principal, quand le joueur choisit un labyrinthe pour jouer
     global g_level_difficulty
@@ -644,7 +651,7 @@ def open_level(difficulty, level, root): #fonction pour le fichier python princi
     g_root = root
     
     global g_level_window
-    g_level_window = LevelWindow(root) 
+    g_level_window = LevelWindow(root, []) 
     return g_level_window     
     
 if __name__ == "__main__":
