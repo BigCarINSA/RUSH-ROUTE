@@ -56,7 +56,13 @@ g_level_window = None #Pour enregistrer l'objet LevelWindow
 g_level_map = [[]] #2D liste contenant info de ce labyrinthe
 g_root = None
 
-class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyrinthe
+class FinishPopUp: 
+    '''
+    creer un PopUp qui apparaît  après le joueur fini le labyrinthe pour montrer le score
+        :parametre: - racine: la fenetre de jeu
+                    - nombre: le distance que le joueur a gagné, 
+                    - un liste de tuples: correspond à ce distance
+    '''
     def __init__(self, root, distance_player, way_player):  #initialiser les variables
         #variables relatives au resultat de labyrinthe 
         algo = plus_court_chemin(g_level_map)
@@ -165,7 +171,7 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
         self.buttons_frame.pack(side = tk.BOTTOM, padx= 10, pady = (5,10)) 
         self.text_frame.pack(side = tk.LEFT, padx= (30,0), pady = (0,20), anchor = tk.W)
 
-    def place_fenetre(self): #Trouver la position centre et dessiner le PopUp
+    def place_fenetre(self): #Trouver la position centre de l'écran et dessiner le PopUp
         self.draw_widgets()
         
         #Trouver le centre de fenetre pour positioner le PopUp
@@ -186,7 +192,14 @@ class FinishPopUp: #creer un PopUp qui apparaît  après le joueur fini le labyr
         g_root.play_sound("button click")
         self.result_map.draw_way(self.result_way, COLOR["red"])
 
-class Character: #Un class pour le personnage qui est controlé par le joueur
+class Character: 
+    '''
+    Un class du personnage qui est controlé par le joueur
+        :parametre: - tuple: la position au début du personnage, 
+                    - le racine (c'est la carte graphique), 
+                    - number: le taille de chaque cellular de la carte (pour determine la taille du personnage)  
+    '''
+
     def __init__(self, start_pos, map_graphic_root, map_square_size): #initialiser les variables    
         #le position au début du personnage est la position "start"     
         self.pos_x = start_pos[0]
@@ -199,7 +212,11 @@ class Character: #Un class pour le personnage qui est controlé par le joueur
 
         self.root = map_graphic_root #le racine est la carte graphique
         
-    def draw(self, pos): #dessiner le personnage selon sa position pos_x et pos_y
+    def draw(self, pos): 
+        '''
+        Dessiner le personnage selon sa position pos_x et pos_y
+            :parametre: - tuple: indique la position du personnage
+        '''
         #position graphique (Oxy)
         graph_pos_x = (pos[0] + 1/2) * self.square_size
         graph_pos_y = (pos[1] + 1/2) * self.square_size        
@@ -208,13 +225,24 @@ class Character: #Un class pour le personnage qui est controlé par le joueur
                                             fill = COLOR["yellow"], 
                                             width = 1, outline = COLOR["dark blue"])
         
-    def update_pos(self, vari_pos): #Mise à jour la position après appuyer sur un bouton de déplacement
+    def update_pos(self, vari_pos): 
+        '''
+        Mise à jour la position après appuyer sur un bouton de déplacement
+            :parametre: - tuple: indique la variation de la position selon le button appuyé
+        '''
         g_root.play_sound("move")
         self.pos_x += vari_pos[0]
         self.pos_y += vari_pos[1]
         self.root.move(self.charac, vari_pos[1] * self.square_size, vari_pos[0] * self.square_size)
 
-class GraphicPlayingMap: #Un class pour le map graphique
+class GraphicPlayingMap: 
+    '''
+    Un class de la carte graphique qui est contenue dans la fenêtre de jeu
+        :parametre: - racine: la fenêtre de jeu
+                    - way = un list: indique le chemin que le joueur a joué 
+                    (si on dessine la carte graphique pour le joueur de jouer, way = [],
+                     si on dessine la carte graphique pour afficher le resultat dans le FinishPopUp, way = le chemin correspondant pour montrer)
+    '''
     def __init__(self, racine, way): #initialiser les variables
         #Variables relatives au labyrinthe à jouer
         self.map_height = len(g_level_map)
@@ -222,7 +250,7 @@ class GraphicPlayingMap: #Un class pour le map graphique
         self.get_start_end()
         
         #On veut dessiner le carte 2 fois, l'un pour le joueur de jouer (donc au debut, way = [])
-        #Et l'autre pour afficher le résultats à la fin (way est le chemin que le joueur a joué, donc, way != []) 
+        #Et l'autre pour afficher le résultat à la fin (way est le chemin que le joueur a joué, donc, way != []) 
         self.way = way 
         if self.way == []:
             self.way = [self.start_pos] #Au début, le personnage est à la position "start"
@@ -248,7 +276,7 @@ class GraphicPlayingMap: #Un class pour le map graphique
                 if g_level_map[row][col] == SQUARE_START_VALUE: self.start_pos = (row, col)
                 if g_level_map[row][col] == SQUARE_END_VALUE: self.end_pos = (row, col)  
      
-    def calcul_square_size(self): #Calculer la taille de chaque carré de la carte qu'on veut dessiner
+    def calcul_square_size(self): #Calculer la taille de chaque cellule de la carte qu'on veut dessiner
         self.square_size = (HEIGHT_WINDOW - 10) // self.map_height #20 vient du "padding" du carte
         
         if self.way[-1] == self.end_pos: #si cette carte est utilisé pour le PopUp à la fin, donc, elle est plus petite
@@ -261,7 +289,12 @@ class GraphicPlayingMap: #Un class pour le map graphique
         if self.square_size < 8: #si la taille de la carte est trop petite, on ne veux pas dessiner le "border" de chaque carré
             self.border_cell = 0
     
-    def get_pos_graphic(self, pos_x, pos_y): #Caculer la postion graphique (Oxy)
+    def get_pos_graphic(self, pos_x, pos_y): 
+        '''
+        Determiner la position correspondant dans le canevas
+            :parametre: - les nombres pos_x, pos_y: position
+            :return: - tuple: la position correspondant dans le canevas
+        '''
         return( pos_x * self.calcul_square_size, pos_y * self.calcul_square_size )     
         
     def draw_map(self): #dessiner la carte
@@ -274,7 +307,14 @@ class GraphicPlayingMap: #Un class pour le map graphique
                                             fill = cell_color,
                                             width = self.border_cell, outline = COLOR["brown"])   
              
-    def draw_way_index(self, ind, way, color): #dessiner un droite connectant 2 carré qui représente le chemin que le joueur a passé 
+    def draw_way_index(self, ind, way, color): 
+        '''
+        Dessiner un droite connectant 2 carré qui représente le chemin que le joueur a passé 
+            :parametre: - ind: index de la deplacement que on veut dessiner dans le liste de chemin: way
+                        - way: le chemin que le joueur a joué
+                        - color (#XXXXXX): la couleur du droite
+        '''
+        
         #Obtenir la position des 2 carrés consécutives dans le variales "way" du joueur
         pos_x, pos_y = way[ind]
         pre_pos_x, pre_pos_y = way[ind-1]
@@ -287,14 +327,14 @@ class GraphicPlayingMap: #Un class pour le map graphique
         for i in range(1, len(way)):
             self.draw_way_index(i, way, color)
 
-    def draw(self, pos_char): #dessiner tout: la carte, le personnage, le chemin
+    def draw(self, pos_char): #dessiner tout ce qui concerne à la carte graphique: la carte, le personnage, le chemin
         self.draw_map()
         if self.way[-1] != self.end_pos:
             self.player_charac.draw(pos_char)
         self.draw_way(self.way, COLOR["dark green"])
         self.graph.pack(padx= self.padding_from_border, pady= self.padding_from_border)
 
-    def check_pos(self, pos_x, pos_y): #Vérifier si une position est dehors de la carte
+    def check_pos(self, pos_x, pos_y): #Vérifier si une position est dehors de la carte pour blocker la déplacement de joueur
         if (( pos_x > -1 ) and ( pos_x < self.map_height )) and ( 
             ( pos_y > -1 ) and ( pos_y < self.map_width )) and (
             g_level_map[pos_x][pos_y] != 0):    
@@ -333,7 +373,13 @@ class GraphicPlayingMap: #Un class pour le map graphique
             if g_level_map[ self.player_charac.pos_x ][ self.player_charac.pos_y ] == -2: #si le personnage est à la position "end"
                 self.finish_action()
                 
-    def finish_action(self): #Les actions quanh le joueur fini le labyrinthe   
+    def finish_action(self): 
+        '''
+        Les actions à faire quand le personnage est à la position "end"
+            - Creer et dessiner le FinishPopUp
+            - Bloquer les boutons de déplacement si il y a le PopUp
+            - Mise à jour le data de joueur (fichier csv)
+        '''  
         #Creer le PopUp
         self.result_fen = FinishPopUp(g_level_window.racine, self.distance, self.way)
         self.result_fen.place_fenetre()
@@ -343,6 +389,7 @@ class GraphicPlayingMap: #Un class pour le map graphique
             button.bttn.config(state = 'disabled')
         g_level_window.isFinish = True
         
+        #Mise à jour le data de joueur (fichier csv) (la fonction est dans le fichier: main.py)
         g_level_window.menu_root.reset_select_level()
            
     def back_1_step(self): #Pour le bouton "1 pas en arrière" comme Ctrl+Z
@@ -352,7 +399,14 @@ class GraphicPlayingMap: #Un class pour le map graphique
         vari_pos = (pos_get_to[0] - pos_delete[0], pos_get_to[1] - pos_delete[1])
         self.update_deplacement(vari_pos, True)
                              
-class button_deplacement: #Un class pour le bouton de déplacement
+class button_deplacement: 
+    '''
+    Un class d'u bouton de déplacement
+        :parametres: - root: la fenêtre du jeu
+                     - name (String): le nom du bouton (pour determiner l'image du bouton)
+                     - grid_pos (tuple): la position du bouton dans le grid de frame des boutons (pour utiliser .grid())
+                     - pos_char_varie (tuple): la variation du personnage corrrespondant au bouton
+    '''
     def __init__(self, root, name, grid_pos, pos_char_varie): #initialiser les variables       
         self.icon_link = './image/moving_buttons/' + name + '.png'
         self.icon = tk.PhotoImage(file = self.icon_link)
@@ -372,10 +426,17 @@ class button_deplacement: #Un class pour le bouton de déplacement
         
         self.pos_char_varie = pos_char_varie       
         
-    def change_pos_charac(self, event): #Callback pour le bouton
+    def change_pos_charac(self, event): #Callback pour le bouton -> mise à jour la position du personnage
         g_level_window.map_player.update_deplacement(self.pos_char_varie, False)
 
-class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
+class ProgressBar: #
+    '''
+    Le tableau de la progression de joueur pendant le jeu.
+    Il va monter la distance et le temps que le jeu est en cours, il contient aussi des boutons: quitter, retour, vol_on_off
+        :parametres: - root: la fenêtre du jeu
+                     - height (int): la hauteur du tableau
+                     - width (int): la largeur du tableau
+    '''
     def __init__(self, root, height, width): #initialiser les variables
         self.fen_level = root
         self.bar_height = height
@@ -414,7 +475,12 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
           
         self.draw_widgets()
     
-    def number_2_chiffres(self, number): #Convertir un nombre vers un String de length = 2 pour montrer le temps de jouer (par ex: "01 : 30")
+    def number_2_chiffres(self, number):
+        '''
+        Fonction permet de convertir un nombre vers un String de length = 2 pour montrer le temps de jouer (par ex: "01 : 30")
+            :parametres: - number (int): le nombre à convertir
+            :return:     - un String de length = 2
+        '''
         if number < 10: return  ("0" + str(number))
         return str(number)
   
@@ -427,17 +493,19 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
     def update_distace(self, distance): #Mise à jour la distance montrée après chaque action
         self.rectange_distance.config(text = f"{distance:.2f}")  
     
-    def draw_head(self): #dessiner la 1er partie du tableau
+    def draw_head(self): #dessiner la 1er partie du tableau: les boutons avec le nom indiquant labyrinth en cours de jouer
         separated_line = tk.Frame(self.frame_head, height = self.height_separated_line, width = 0.7 * self.bar_width,
                                        bg = self.font_color)
         separated_line.pack(side = tk.BOTTOM, pady = (2,0))
         
+        #Dessiner le nom du labyrinth en cours de jouer
         titre_text = f"{g_level_difficulty} - {g_level}"
         if type(g_level) is not int: titre_text = f"{g_level_difficulty}\n{g_level}"
         self.titre_level = tk.Label(self.frame_head, text = titre_text, bg = self.bg_bar_color,
                                    fg = self.font_color, font = self.font_level)
         self.titre_level.pack(side = tk.BOTTOM, pady = (0, 5))
         
+        #Dessiner les boutons: quitter, retour et vol_on_off
         self.frame_head_buttons = tk.Frame(self.frame_head, width = self.bar_width, bg = self.bg_bar_color, height= self.button_size +5)
         self.frame_head_buttons.grid_propagate(False)
         self.frame_head_buttons.pack(side = tk.TOP, pady=(12,2), padx= 7)
@@ -524,12 +592,12 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
         self.frame_time.grid(column=0, row=1)
         self.frame_distance.grid(column=0, row=2)
         
-    def back_one_step(self, events): #Callback pour le bouton "1 pas en arrière"
+    def back_one_step(self, events): #Callback pour le bouton retour ("back_one_step")
         g_root.play_sound("button click")
         if g_level_window.map_player.distance > 0:
             g_level_window.map_player.back_1_step()
         
-    def on_off_vol(self, event):
+    def on_off_vol(self, event): #Callback pour le bouton vol_on_off
         g_root.play_sound("button click")
         if self.is_vol_up:
             self.is_vol_up = False
@@ -539,17 +607,25 @@ class ProgressBar: #Le tableau de la progression de joueur pendant le jeu
             self.vol_button['image'] = self.img_vol_up_button
         g_root.on_off_music(self.is_vol_up)
         
-    def ask_to_exit(self, events): #demander si le joueur veut quitter
+    def ask_to_exit(self, events): #Callback pour le bouton quitter -> demander si le joueur veut quitter
         g_root.play_sound("button click")
         g_level_window.ask_to_quit()
 
-class LevelWindow: #le classe du fenetre du labyrinthe
+class LevelWindow: 
+    '''
+    Class du fenetre du jeu
+        :parametres: - root: le Toplevel du fenetre
+                     - restart_random: liste des coordonnées de la matrice de réinitialisation
+                     (ce paramatre est utilisé pour éviter la réinitialisation du labyrinthe quand le joueur rejoue un matrice aleatoire,
+                     donc si le labyrinthe en cours de jouer n'est pas Matrice_random, donc, restart_random = [])
+    '''
+    
     def __init__(self, root, restart_random): #initialiser les variables
         self.menu_root = root
         
-        print(restart_random)
-        if restart_random == []: self.get_map()
-        else: 
+        #Verifier si le joeur rejoue un matrice aleatoire
+        if restart_random == []: self.get_map() #Si non, on réinitialise le labyrinthe
+        else:                                   #Si oui, on garde l'ancien matrice
             global g_level_map
             g_level_map = restart_random
         
@@ -581,7 +657,7 @@ class LevelWindow: #le classe du fenetre du labyrinthe
         print(level_map)
         return level_map 
                 
-    def get_map(self): 
+    def get_map(self): #obtenir le labyrinthe de jouer: lire le fichier csv pour un labyrinthe normal, creer aleatoire pour un labyrinthe random
         global g_level_map
         if g_level.isnumeric(): 
             g_level_map = self.get_map_csv()
@@ -619,7 +695,7 @@ class LevelWindow: #le classe du fenetre du labyrinthe
         
         self.frame_buttons.pack(side = tk.BOTTOM, pady = (4,8), padx = (6,10))
     
-    def key_press_event(self, event):
+    def key_press_event(self, event): #callback permet le joeur d'utiliser le keyboard pour jouer
         if event.keysym in MOVING_KEY.keys():
             g_level_window.map_player.update_deplacement( MOVING_KEY[event.keysym] , False)
               

@@ -5,6 +5,15 @@ Version: 1.0
 Released day: 01/05/2023
 
 ======================================================================
+How to play:
+
+- Install the packages needed:
+    + pandas: pip install pandas
+    + pygame: pip install pygame
+
+- Run file "main.py" to play game
+
+======================================================================
 
 Welcome to ROUTE RUSH!
 
