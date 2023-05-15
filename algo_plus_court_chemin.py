@@ -31,7 +31,8 @@ class plus_court_chemin:
         if value_at_end < 0: value_at_end = 1
         
         varie_x = x2 - x1; varie_y = y2 - y1
-        distance = math.sqrt( varie_x ** 2 + varie_y ** 2 ) * 0.5 * (value_at_start + value_at_end)
+        if (abs(varie_x) > 1) or (abs(varie_y) > 1): distance = math.sqrt( varie_x ** 2 + varie_y ** 2 ) * value_at_end
+        else: distance = math.sqrt( varie_x ** 2 + varie_y ** 2 ) * 0.5 * (value_at_start + value_at_end)
         return distance  
 
     def heuristic_from_point(self, x, y): #retourner la fonction heuristique a la position "pos", c'est la distance d'oiseau entre cette pos et la pos fini
