@@ -78,7 +78,7 @@ class plus_court_chemin:
         if value_at_end < 0: value_at_end = 1
         
         varie_x = x2 - x1; varie_y = y2 - y1
-        if abs(varie_x > 1) or abs(varie_y > 1): distance = math.sqrt( varie_x ** 2 + varie_y ** 2 ) * value_at_end
+        if (abs(varie_x) > 1) or (abs(varie_y) > 1): distance = math.sqrt( varie_x ** 2 + varie_y ** 2 ) * value_at_end
         else: distance = math.sqrt( varie_x ** 2 + varie_y ** 2 ) * 0.5 * (value_at_start + value_at_end)
         return distance  
 
@@ -142,6 +142,8 @@ class plus_court_chemin:
             alre_collected[ pos_explore ] = distance          #Le poids est minimale donc la distance qu'on a trouvé est le plus court pour arriver à cette position 
             dict_pos_get = self.dict_pos_can_get(pos_explore) #Trouver les noeuds adjacents de "pos_explore"
             
+            print(f'Position: {pos_explore}, distance: {distance}, heristice {self.h_map[ pos_explore[0] ][ pos_explore[1] ]}') #Affichage
+            
             if pos_explore == self.end: #Si on a trouvé la position finale, on change is_collected_end pour terminer le boucle
                 is_collected_end = True
             else:                       #Sinon on continue notre boucle            
@@ -150,8 +152,9 @@ class plus_court_chemin:
                     if (pos_get not in alre_collected) and (distance_need < self.to_explore.get(pos_get, math.inf)): #Si le noeud adjacente n'a pas encore été trouvé ou si la distance est inférieur à l'ancienne distance
                         self.to_explore[pos_get] = distance_need      #On l'ajoute dans la pile de priorité
                         self.way[pos_get] = self.way[pos_explore] + [pos_get]
+                    print(f'    Position: {pos_get}, distance: {distance_need}, heristic {self.h_map[ pos_get[0] ][ pos_get[1] ]}')
 
-                        
+            
         self.shortest_way = self.way.get(self.end, [])
         self.shortest_distance = alre_collected.get(self.end, [])
           
@@ -163,7 +166,7 @@ class plus_court_chemin:
         print()                
 
 if __name__ == "__main__":
-    level = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 1, 0, 0, 0, 0, 0], [-1, 1, 0, 1, 0, 1, 0, 0, 0, 0], [0, 1, 1, 1, 0, 0, 1, 0, 0, 0], [0, 2, 1, 1, 0, 0, 2, 1, 0, 0], [0, 1, 0, 1, 0, 0, 1, 1, 0, 0], [0, 1, 0, 1, 0, 0, 1, 1, 2, 0], [0, 1, 0, 2, 0, 0, 1, 1, 1, -2], [0, 1, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    level = [[0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, -2, 1, 1, 1, 1, 0, 0, 0, 0, 2], [0, 0, 0, 0, 2, 1, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 0], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 0], [0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 1], [1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0], [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 2, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0], [0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0], [0, -1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     algo = plus_court_chemin(level)
     print(algo.shortest_distance)
     print(algo.shortest_way)
