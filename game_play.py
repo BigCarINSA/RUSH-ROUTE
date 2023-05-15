@@ -664,6 +664,7 @@ class LevelWindow:
         else:
             mat_ran = Matrice_random(g_level_difficulty)
             g_level_map = mat_ran.matrice  
+        print(g_level_map)
                 
     def draw(self): #dessiner le fenetre
         self.frame_map = tk.Frame(self.racine,
