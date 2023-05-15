@@ -41,6 +41,10 @@ SOUND_EFFECT = { "button click" : "./Sound/button_click_sound.mp3",
 g_sound_id = {}
 
 class Window(tk.Tk):
+    '''
+    Un class permet de créer une fenêtre de jeu, l'objet de cette classe est aussi un controller de tout les frames après
+        :parametres: None
+    '''
     def __init__(self):
         tk.Tk.__init__(self)
         self.geometry("1000x600")
@@ -49,6 +53,8 @@ class Window(tk.Tk):
         window_frame.pack() 
         self.maze_playing_window = None
         
+        #Initialisation de tout les frames: taille 1000x600, coleur "lighter yellow"
+        #Chaque frame est enregistré dans un dictionaire self.frames
         self.frames = {}
         for F in (HomePage, PlayGame, SettingPopUp, LevelSelect, Records):
             frame = F(self,window_frame) #self est Window
@@ -59,13 +65,14 @@ class Window(tk.Tk):
                        #sticky = "nsew")
             self.frames[F] =frame
             
+        #Au debut, on affiche le frame HomePage et initialiser le mixer
         self.show_frame(HomePage)
-        self.init_mixer() 
-        self.isvolumeOn = 1
+        self.init_mixer()
     
-    def init_mixer(self):
+    def init_mixer(self): #Initialisation du mixer
         mixer.init()
         
+        #On enregistre les effets sonores dans le dictionnaire g_sound_id
         global g_sound_id
         g_sound_id = {
             "button click" : mixer.Sound(SOUND_EFFECT["button click"]),
@@ -75,33 +82,40 @@ class Window(tk.Tk):
         }
         
         self.set_vol(0.5)
+        
+        #Joue la musique background
         self.music_background = mixer.music.load(filename=BACKGROUND_MUSIC)
         mixer.music.play()
     
-    def play_sound(self, action):
+    def play_sound(self, action): #Jouer une effet sonore (action est un String indique quelle action souhaite jouer)
         mixer.Sound.play(g_sound_id[action])
     
-    def set_vol(self, vol_intensite):
+    def set_vol(self, vol_intensite): #Paramettre le volume (vol_intensite est un nombre entre 0 et 1)
         self.volume_intensite = vol_intensite
         for sound in g_sound_id.values():
             mixer.Sound.set_volume(sound, self.volume_intensite)
         mixer.music.set_volume(self.volume_intensite)
     
-    def on_off_music(self, isOn):
+    def on_off_music(self, isOn): #Callback pour le bouton vol_on_off avec isOn = True ou False
         if not isOn:
             mixer.music.set_volume(0)
         else:
             mixer.music.set_volume(self.volume_intensite)
     
-    def reset_select_level(self):
+    def reset_select_level(self): #Callback pour le bouton rejouer le labyrinthe
         frame = self.frames[LevelSelect]
         frame.change_difficulty(frame.difficulty)
     
-    def show_frame(self, frame_name):
+    def show_frame(self, frame_name): #Affichage du frame on veut, c'est-à-dire mettre-le en premier layout
         frame = self.frames[frame_name]
         frame.tkraise()
         
 class HomePage(tk.Frame):
+    '''
+    Un class de frame HomePage (qui est le frame premier de la fenêtre de jeu) qui contient des boutons "jouer", "afficher le record" et "paramettre"
+        :parametres: - controller: c'est le Window - fenetre de jeu
+                     - frame: c'est le Frame qu'on a entregistré dans le dictionaire self.frames
+    '''
     def __init__(self,controller,frame): 
         tk.Frame.__init__(self, frame)
         self.pack_propagate(0)
@@ -114,7 +128,8 @@ class HomePage(tk.Frame):
         
         self.draw_widgets()
         
-    def draw_widgets(self):       
+    def draw_widgets(self):  #Dessine les widgets
+        #Le titre  
         self.lb1=tk.Label(self,  text = GAME_NAME, font=(FONT, 90, 'bold'),
                           fg = COLOR["dark blue"],bg= COLOR["lighter yellow"] )
         self.lb1.pack(pady=(50,0))
@@ -122,6 +137,7 @@ class HomePage(tk.Frame):
         self.frame_button = tk.Frame(self, bg = COLOR["lighter yellow"])
         self.frame_button.pack(side = tk.BOTTOM, pady = (0, 40))
         
+        #Des boutons: "jouer", "afficher le record" et "paramettre"
         list_buttons = ["play", "record", "setting"]
         frames_buttons = {}    
         for i in range(len(list_buttons)):
@@ -163,30 +179,36 @@ class HomePage(tk.Frame):
         self.quitter_button.place(x = 30, y = 500)
         self.quitter_button.bind('<Button-1>', self.quitClick)        
                
-    def button1Click(self,event):
+    def button1Click(self,event): #Callback pour le bouton "jouer": afficher le frame PlayGame pour choisir la difficulté
         mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(PlayGame)
 
-    def boutonsettingClick(self,event):
+    def boutonsettingClick(self,event): #Callback pour le bouton "paramettre": afficher le frame SettingPopUp pour parmettre le jeu  
         mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(SettingPopUp)
       
-    def boutonRecordClick(self,event):
+    def boutonRecordClick(self,event): #Callback pour le bouton "afficher le record": afficher les records de joueur 
         mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(Records)
         
-    def quitClick(self,event):
+    def quitClick(self,event): #Callback pour le bouton "quitter": quitter le programme
         mixer.Sound.play(g_sound_id["button click"])
         self.msg_box = messagebox.askquestion("Attention!", "Do you want to quit?", icon = "warning")
         if self.msg_box == "yes":
             self.controller.destroy()
             
 class PlayGame(tk.Frame):
+    '''
+    Un class de frame PlayGame où le joueur selectionne la difficulté 
+        :parametres: - controller: c'est le Window - fenetre de jeu
+                     - frame: c'est le Frame qu'on a entregistré dans le dictionaire self.frames
+    '''
     def __init__(self,controller,frame):
         tk.Frame.__init__(self, frame)   
         self.controller = controller      
         self.pack_propagate(0)
         
+        #initialize les tailles des boutons
         self.dis_button = 20
         self.buttons_width = 320
         self.buttons_height = 80
@@ -194,7 +216,8 @@ class PlayGame(tk.Frame):
         
         self.draw_widgets()  
         
-    def draw_widgets(self):
+    def draw_widgets(self): #Dessine les widgets
+        #Le titre  
         self.lb1=tk.Label(self,  text = GAME_NAME, font=TITRE_FONT,
                           fg = COLOR["dark blue"],bg= COLOR["lighter yellow"] )
         self.lb1.pack(pady=(30,0))
@@ -203,6 +226,7 @@ class PlayGame(tk.Frame):
                           fg = COLOR["dark blue"], bg= COLOR["lighter yellow"] )
         self.lb2.pack()
         
+        #Des boutons: "Easy", "Medium", "Hard"
         self.frame_button = tk.Frame(self, bg = COLOR["lighter yellow"])
         self.frame_button.pack(side = tk.BOTTOM, pady = (0, 40))
         
@@ -233,19 +257,146 @@ class PlayGame(tk.Frame):
         self.return_button.place(x = 30, y = 500)
         self.return_button.bind('<Button-1>', self.button_return)        
 
-    def get_button_click(self, event):
+    def get_button_click(self, event): #Callback pour le bouton de choisir la difficulté
         mixer.Sound.play(g_sound_id["button click"])
         self.open_level_selection( event.widget['text'] )
 
-    def open_level_selection(self, difficulty):
+    def open_level_selection(self, difficulty): #Affiche le frame LevelSelect avec le difficulté correspondant
         self.controller.show_frame(LevelSelect)
         self.controller.frames[LevelSelect].change_difficulty(difficulty)
         
-    def button_return(self,event):
+    def button_return(self,event): #Callback pour le bouton de retour
         mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(HomePage)
- 
+      
+class LevelSelect(tk.Frame):
+    '''
+    Un class de frame LevelSelect où le joueur selectionne le labyrinthe qu'il veut jouer  
+        :parametres: - controller: c'est le Window - fenetre de jeu
+                     - frame: c'est le Frame qu'on a entregistré dans le dictionaire self.frames
+    '''
+    def __init__(self, controller, frame):
+        tk.Frame.__init__(self, frame)   
+        self.controller = controller      
+        self.pack_propagate(0)
+        
+        #Initialize les tailles des boutons
+        self.ver_dis_button = 30
+        self.hoz_dis_button = 30
+        self.buttons_width = 320
+        self.buttons_height = 80
+        self.buttons_font_style = (FONT, 30)
+        
+        self.difficulty = "EASY"
+        self.nb_levels = 5 #Inclure également labyrinthe aléatoire
+        self.draw_widgets()  
+        
+    def draw_grid_buttons_level(self): #Dessine les boutons en utilisant la .grid()
+        self.get_player_data()
+        self.frame_button = tk.Frame(self, bg = COLOR["lighter yellow"])
+        self.frame_button.pack(side = tk.TOP, pady = (0,0))
+        
+        self.list_buttons = []
+        self.frames_buttons = {}   
+        self.buttons = {} 
+        
+        for i in range(self.nb_levels - 1):
+            self.list_buttons.append(f"{i+1}")
+        self.list_buttons.append(f"random")
+        
+        for i in range(self.nb_levels):
+            button = self.list_buttons[i]
+            self.frames_buttons[ button ] = tk.Frame(self.frame_button,
+                                                    highlightbackground = COLOR["dark blue"], highlightthickness = 5,
+                                                    width = self.buttons_width, height = self.buttons_height)
+            
+            if i != self.nb_levels-1:
+                self.frames_buttons[ button ].grid(column = i%2, row = i//2, 
+                                                                pady= (self.ver_dis_button, 0), padx = self.hoz_dis_button//2)
+            else:
+                self.frames_buttons[ button ].grid(row = i//2, columnspan = 2, pady= (self.ver_dis_button, 0), padx = self.hoz_dis_button//2)
+            self.frames_buttons[ button ].pack_propagate(0)
+            
+            self.buttons[button] = tk.Button( self.frames_buttons[button], width = 30, height= 2,
+                                              text = "Maze "+ button, font = self.buttons_font_style, 
+                                              foreground = COLOR['dark blue'], activeforeground = COLOR["light yellow"], 
+                                              bg = COLOR['light yellow'], activebackground = COLOR['dark blue'],
+                                              relief = 'flat')
+            self.buttons[button].pack()
+            self.buttons[button].bind("<Button-1>",self.open_maze_selection)
+            
+        #Déactiver des "labyrinthes" qui ne satisfaires pas la condition pour jouer 
+        for i in range(1, self.nb_levels):
+            button = self.list_buttons[i]
+            previous_level = self.difficulty + ' - ' + self.list_buttons[i-1]
+            played_times, high_score = self.player_data[previous_level]
+            if (played_times < 3) and (high_score < 80):
+                self.buttons[button].config( state='disabled', bg = COLOR['light green'])
+                self.frames_buttons[ button ].config( highlightbackground = COLOR["dark green"] )
+        
+    def draw_widgets(self): #Dessine les widgets
+        #le titre
+        self.lb1=tk.Label(self,  text = GAME_NAME, font=TITRE_FONT,
+                          fg = COLOR["dark blue"],bg= COLOR["lighter yellow"] )
+        self.lb1.pack(pady=(30,0))
+        
+        self.difficulty_titre = self.difficulty[0] + self.difficulty[1:].lower() + " Maze"
+        self.lb2=tk.Label(self, text = self.difficulty_titre, font=(FONT, 40),
+                          fg = COLOR["dark blue"], bg= COLOR["lighter yellow"] )
+        self.lb2.pack()
+        
+        #les boutons
+        self.draw_grid_buttons_level()
+        
+        self.return_image = tk.PhotoImage(file = "./image/quit_button.png")
+        self.return_button = tk.Button(self, image = self.return_image,
+                                        height = 65, width = 65, relief = 'flat',
+                                        bg = COLOR["dark green"], 
+                                        activebackground = COLOR["dark blue"])
+        self.return_button.place(x = 30, y = 500)
+        self.return_button.bind('<Button-1>', self.button_return)        
+
+    def open_maze_selection(self, event): #callback pour le bouton de choisir la labyrinthe
+        button_clicked = event.widget
+        if button_clicked['state'] != 'disabled':
+            level = button_clicked['text'][-1]
+            if not level.isnumeric(): level = "RANDOM"
+            
+            if self.controller.maze_playing_window != None:
+                self.controller.maze_playing_window.destroy()
+            self.controller.maze_playing_window = open_level(self.difficulty, level , self.controller).racine
+        
+    def get_player_data(self): #Obtenir les données du joueur pour savoir quels labyrinthes satisfaires la condition
+        self.player_data = {}
+        with open(file = PLAYER_DATA, mode = 'r', encoding= "utf-8") as csvfile:
+            reader = csv.reader(csvfile, delimiter=";")
+            reader.__next__()
+            for ligne in reader:
+                level, played_times, high_score = ligne
+                self.player_data[level] = [int(played_times), float(high_score)]
+        
+    def change_difficulty(self, difficulty): #Changer le difficulté qu'on a choisit dans le frame PlayGame
+        self.difficulty = difficulty
+        self.difficulty_titre = self.difficulty[0] + self.difficulty[1:].lower() + " Maze"
+        
+        self.lb2.config(text = self.difficulty_titre)
+        self.frame_button.destroy()
+        self.draw_grid_buttons_level()
+        
+    def button_return(self,event): #Callback pour le bouton de retour
+        mixer.Sound.play(g_sound_id["button click"])
+        self.controller.show_frame(PlayGame)  
+
 class Scale:
+    '''
+    Un class utilisé tk.Canvas pour creer un Scale (car tk.Scale ne permet pas de concevoir comme on veut)
+        :parametres: - root: c'est le frame Setting 
+                     - bg: c'est la couleur de fond
+                     - length: c'est la longueur du Scale
+                     - slider_size, slider_border_color, slider_border_width, slider_color, active_slider_color: c'est la taille et couleur du glissière
+                     - trough_color : c'est la couleur dessinée du trough
+                     - command: c'est la callback correspondant à ce Scale
+    '''
     def __init__(self, root, bg, length, slider_size, slider_border_color, slider_border_width, trough_color, slider_color, active_slider_color, command):
         self.slider_frame = tk.Frame(root)
         self.command = command
@@ -284,11 +435,11 @@ class Scale:
         self.canvas.tag_bind(self.slider, '<B1-Motion>', self.on_slider_move)
         self.canvas.tag_bind(self.slider, '<ButtonRelease-1>', self.on_slider_release)
 
-    def on_slider_press(self,event):
+    def on_slider_press(self,event): #Écouter l'event clique sur le glissier -> mise à jour la position du glissier et change la couleur du glissier
         self.last_x = event.x
         self.canvas.itemconfig(self.slider, fill=self.active_slider_color)
 
-    def on_slider_move(self,event):
+    def on_slider_move(self,event): #Écouter l'event déplacer de souris -> mise à jour la position du glissier et effectuer le callback
         #Obtenir la position du glissiere
         pos_slider = self.canvas.coords(self.slider)
         self.centre_slider = (pos_slider[0]+pos_slider[2]) / 2
@@ -302,25 +453,31 @@ class Scale:
         self.canvas.move(self.slider, slider_delta_x, 0)
         self.last_x = new_x
         
+        #Effectuer le callback
         self.get_value_slider()
         self.command(self.value)
  
-    def on_slider_release(self, event):
+    def on_slider_release(self, event): #Écouter l'event laisseur de souris -> mise à jour la couleur du glissier
         self.canvas.itemconfig(self.slider, fill=self.slider_color)
 
-    def get_value_slider(self):
+    def get_value_slider(self): #Obtenir la valeur du glissier
         self.value = (self.centre_slider - self.trough_x1) / (self.trough_x2 - self.trough_x1)
         if self.value < 0: self.value = 0
         if self.value > 1: self.value = 1
         
 class SettingPopUp(tk.Frame):
+    '''
+    Un class de frame Setting où le joueur paramet le jeu: modifie le volume du son et renouvelle le jeu 
+        :parametres: - controller: c'est le Window - fenetre de jeu
+                     - frame: c'est le Frame qu'on a entregistré dans le dictionaire self.frames
+    '''
     def __init__(self, controller, frame):
         self.controller = controller
         
+        #initialiser le frame
         self.bg_color = COLOR['light yellow']
         self.height = 325
         self.width = 600
-        print("running")
         
         tk.Frame.__init__(self, frame)
         self.config(height = self.height, width = self.width, background= self.bg_color,
@@ -331,15 +488,17 @@ class SettingPopUp(tk.Frame):
         self.slider_size = 46
         self.draw()
     
-    def draw_sound_scale(self):
+    def draw_sound_scale(self): #dessiner le Scale du son
         self.frame_volume = tk.Frame(self, bg=self.bg_color, width = 600)
         self.frame_volume.pack(side = tk.LEFT)
         
+        #le label: "Volumn: "
         self.label_font = (FONT, 30)
         self.label = tk.Label(self.frame_volume, text="Volume:", bg=self.bg_color,
                               font = self.label_font, foreground = COLOR['dark green'])
         self.label.pack(side=tk.LEFT, padx= (30,20))
 
+        #le Scale
         self.scale = Scale(self.frame_volume, length = self.scale_length, 
                            trough_color = COLOR['dark blue'], bg = self.bg_color,
                            slider_size = self.slider_size, slider_border_width = 3, 
@@ -350,7 +509,7 @@ class SettingPopUp(tk.Frame):
         
         self.scale.slider_frame.pack(side=tk.LEFT, padx= (0,36))
 
-    def draw(self):    
+    def draw(self):  #dessiner tout: le titre, le bouton "reset" et le Scale du son
         #dessiner le titre
         self.title = tk.Label(self, bg = self.bg_color,
                               font = (FONT, 45, 'bold'), text = 'SETTING' , 
@@ -381,13 +540,12 @@ class SettingPopUp(tk.Frame):
         self.close_button.place(x = 520, y = 12)
         self.close_button.bind('<Button-1>', self.close_setting)
         
-    def update_volume(self, value):
-        #Code pour modifier l'intensite
+    def update_volume(self, value): #modifier l'intensite du son
         self.volume_intensite = MIN_VOLUME + value * (MAX_VOLUME - MIN_VOLUME)
         self.controller.set_vol(self.volume_intensite)
         print(self.volume_intensite)  
         
-    def reset_data_player(self, events):
+    def reset_data_player(self, events): #callback de la bouton "reset data player"
         mixer.Sound.play(g_sound_id["button click"])
         self.msg_box = messagebox.askquestion("Attention!", "Reset all data and start over?", icon = "info")
         if self.msg_box == "yes":
@@ -399,119 +557,15 @@ class SettingPopUp(tk.Frame):
                         writer.writerow([difficulty + " - " + str(level), 0 , 0.0 ])
                     writer.writerow([difficulty + " - RANDOM", 0 , 0.0 ])
 
-    def close_setting(self, events):
+    def close_setting(self, events): #callback de la bouton "close"
         self.controller.show_frame(HomePage)
-            
-class LevelSelect(tk.Frame):
-    def __init__(self, controller, frame):
-        tk.Frame.__init__(self, frame)   
-        self.controller = controller      
-        self.pack_propagate(0)
         
-        self.ver_dis_button = 30
-        self.hoz_dis_button = 30
-        self.buttons_width = 320
-        self.buttons_height = 80
-        self.buttons_font_style = (FONT, 30)
-        
-        self.difficulty = "EASY"
-        self.nb_levels = 5 #Inclure également labyrinthe aléatoire
-        self.draw_widgets()  
-        
-    def draw_grid_buttons_level(self):
-        self.get_player_data()
-        self.frame_button = tk.Frame(self, bg = COLOR["lighter yellow"])
-        self.frame_button.pack(side = tk.TOP, pady = (0,0))
-        
-        self.list_buttons = []
-        self.frames_buttons = {}   
-        self.buttons = {} 
-        
-        for i in range(self.nb_levels - 1):
-            self.list_buttons.append(f"{i+1}")
-        self.list_buttons.append(f"random")
-        
-        for i in range(self.nb_levels):
-            button = self.list_buttons[i]
-            self.frames_buttons[ button ] = tk.Frame(self.frame_button,
-                                                    highlightbackground = COLOR["dark blue"], highlightthickness = 5,
-                                                    width = self.buttons_width, height = self.buttons_height)
-            
-            if i != self.nb_levels-1:
-                self.frames_buttons[ button ].grid(column = i%2, row = i//2, 
-                                                                pady= (self.ver_dis_button, 0), padx = self.hoz_dis_button//2)
-            else:
-                self.frames_buttons[ button ].grid(row = i//2, columnspan = 2, pady= (self.ver_dis_button, 0), padx = self.hoz_dis_button//2)
-            self.frames_buttons[ button ].pack_propagate(0)
-            
-            self.buttons[button] = tk.Button( self.frames_buttons[button], width = 30, height= 2,
-                                              text = "Maze "+ button, font = self.buttons_font_style, 
-                                              foreground = COLOR['dark blue'], activeforeground = COLOR["light yellow"], 
-                                              bg = COLOR['light yellow'], activebackground = COLOR['dark blue'],
-                                              relief = 'flat')
-            self.buttons[button].pack()
-            self.buttons[button].bind("<Button-1>",self.open_maze_selection)
-            
-        for i in range(1, self.nb_levels):
-            button = self.list_buttons[i]
-            previous_level = self.difficulty + ' - ' + self.list_buttons[i-1]
-            played_times, high_score = self.player_data[previous_level]
-            if (played_times < 3) and (high_score < 90):
-                self.buttons[button].config( state='disabled', bg = COLOR['light green'])
-                self.frames_buttons[ button ].config( highlightbackground = COLOR["dark green"] )
-        
-    def draw_widgets(self):
-        self.lb1=tk.Label(self,  text = GAME_NAME, font=TITRE_FONT,
-                          fg = COLOR["dark blue"],bg= COLOR["lighter yellow"] )
-        self.lb1.pack(pady=(30,0))
-        
-        self.difficulty_titre = self.difficulty[0] + self.difficulty[1:].lower() + " Maze"
-        self.lb2=tk.Label(self, text = self.difficulty_titre, font=(FONT, 40),
-                          fg = COLOR["dark blue"], bg= COLOR["lighter yellow"] )
-        self.lb2.pack()
-        
-        self.draw_grid_buttons_level()
-        
-        self.return_image = tk.PhotoImage(file = "./image/quit_button.png")
-        self.return_button = tk.Button(self, image = self.return_image,
-                                        height = 65, width = 65, relief = 'flat',
-                                        bg = COLOR["dark green"], 
-                                        activebackground = COLOR["dark blue"])
-        self.return_button.place(x = 30, y = 500)
-        self.return_button.bind('<Button-1>', self.button_return)        
-
-    def open_maze_selection(self, event):
-        button_clicked = event.widget
-        if button_clicked['state'] != 'disabled':
-            level = button_clicked['text'][-1]
-            if not level.isnumeric(): level = "RANDOM"
-            
-            if self.controller.maze_playing_window != None:
-                self.controller.maze_playing_window.destroy()
-            self.controller.maze_playing_window = open_level(self.difficulty, level , self.controller).racine
-        
-    def get_player_data(self):
-        self.player_data = {}
-        with open(file = PLAYER_DATA, mode = 'r', encoding= "utf-8") as csvfile:
-            reader = csv.reader(csvfile, delimiter=";")
-            reader.__next__()
-            for ligne in reader:
-                level, played_times, high_score = ligne
-                self.player_data[level] = [int(played_times), float(high_score)]
-        
-    def change_difficulty(self, difficulty):
-        self.difficulty = difficulty
-        self.difficulty_titre = self.difficulty[0] + self.difficulty[1:].lower() + " Maze"
-        
-        self.lb2.config(text = self.difficulty_titre)
-        self.frame_button.destroy()
-        self.draw_grid_buttons_level()
-        
-    def button_return(self,event):
-        mixer.Sound.play(g_sound_id["button click"])
-        self.controller.show_frame(PlayGame)
-            
 class Records(tk.Frame):
+    '''
+    Un class de frame Records où le joueur peut regarder ses scores  
+        :parametres: - controller: c'est le Window - fenetre de jeu
+                     - frame: c'est le Frame qu'on a entregistré dans le dictionaire self.frames
+    '''
     def __init__(self,controller,frame):
         tk.Frame.__init__(self, frame)   
         self.controller = controller      
@@ -527,11 +581,13 @@ class Records(tk.Frame):
         
         self.draw_widgets()  
         
-    def draw_widgets(self):
+    def draw_widgets(self): #Dessiner des widgets
+        #le titre
         self.lb1=tk.Label(self,  text = GAME_NAME, font=TITRE_FONT,
                           fg = COLOR["dark blue"],bg= COLOR["lighter yellow"] )
         self.lb1.pack(pady=(15,0))
                 
+        #le bouton "next" pour changer la difficulté qu'on veut regarder
         self.next_image = tk.PhotoImage(file = "./image/next.png")
         self.next_button = tk.Button(self, image = self.next_image,
                                         height = 40, width = 40, relief = 'flat',
@@ -540,6 +596,7 @@ class Records(tk.Frame):
         self.next_button.place(x = 700, y = 150)
         self.next_button.bind('<Button-1>', self.button_change_difficulty)
         
+        #dessiner le tableau des scores
         self.draw_label_table()
         
         self.return_image = tk.PhotoImage(file = "./image/quit_button.png")
@@ -550,16 +607,18 @@ class Records(tk.Frame):
         self.return_button.place(x = 30, y = 500)
         self.return_button.bind('<Button-1>', self.button_return)        
 
-    def draw_label_table(self):
+    def draw_label_table(self): #dessiner le tableau des scores
         difficulty = self.difficulty_list[self.difficulty_index]
         
         self.frame_label_table = tk.Frame(self, bg= COLOR["lighter yellow"])
         self.frame_label_table.pack()
         
+        #dessiner le label montant la difficulté est en cours
         self.lb2=tk.Label(self.frame_label_table, text = "Records : " + difficulty, font=(FONT, 28),
                           fg = COLOR["dark blue"], bg= COLOR["lighter yellow"] )
         self.lb2.pack()
         
+        #dessiner la liste des scores en utilisant des labels
         self.frame_list = tk.Frame(self.frame_label_table, bg = COLOR["lighter yellow"])
         self.frame_list.pack(side = tk.TOP, pady = (20, 0))
 
@@ -594,7 +653,7 @@ class Records(tk.Frame):
             
         self.next_button.tkraise()
 
-    def get_player_data(self):
+    def get_player_data(self): #Obtenir les donnees du joueur
         self.player_data = {}
         with open(file = PLAYER_DATA, mode = 'r', encoding= "utf-8") as csvfile:
             reader = csv.reader(csvfile, delimiter=";")
@@ -603,7 +662,7 @@ class Records(tk.Frame):
                 level, played_times, high_score = ligne
                 self.player_data[level] = [int(played_times), float(high_score)]
 
-    def create_list_labels(self, difficulty):
+    def create_list_labels(self, difficulty): #Enregistrer les donnees du joueur dans une liste qu'on va utiliser pour dessiner le tableau des scores
         self.get_player_data()
         self.list_records = []
         self.list_records.append([None, "Played times", "High Score"])
@@ -614,13 +673,13 @@ class Records(tk.Frame):
         level = difficulty + " - RANDOM"
         self.list_records.append(['Maze random', self.player_data[level][0], self.player_data[level][1]])
 
-    def button_change_difficulty(self, event):
+    def button_change_difficulty(self, event): #callback de la bouton "next" - qui change la difficulté qu'on veut regarder
         mixer.Sound.play(g_sound_id["button click"])
         self.difficulty_index = (self.difficulty_index + 1) % len(self.difficulty_list)
         self.frame_label_table.destroy()
         self.draw_label_table()
         
-    def button_return(self,event):
+    def button_return(self,event): #callback de la bouton "return"
         mixer.Sound.play(g_sound_id["button click"])
         self.controller.show_frame(HomePage)
                
